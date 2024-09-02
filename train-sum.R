@@ -48,20 +48,6 @@ fd$tensor = map(fd$fn, ~ torch_load(.x))
 # Spectral Signature five minute intervals by day.
 device = "mps"
 
-# Loss is binary cross entropy with an epsilon to take care of the cases
-# of numerical stability
-my_loss = function(input, target) {
-  target = target$reshape(target$shape[-2])
-  eps = 1e-8
-  ret = torch_mean(
-    -(target * log(input + eps) + (1-target) * log(1 - input + eps))
-  )
-  if (any(is.nan(as.numeric(ret$to(device = "cpu"))))) {
-    ret = torch_scalar_tensor(10., device = "mps")
-  }
-  ret
-}
-
 for (num_folds in c(10, 50, 100, 150, 187)) {
   # Nest by the eid, give each eid a cross-validation fold (xv), which will
   # be the row number mod the number of folds plus 1.
